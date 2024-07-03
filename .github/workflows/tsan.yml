@@ -28,7 +28,7 @@ jobs:
           export CXX=clang++
           export CFLAGS="-fsanitize=thread -fPIE -O2 -g -gcolumn-info"
           export LDFLAGS="-fsanitize=thread -pie"
-          find /usr/projects/nginx-rtmp-module -name Makefile -execdir sh -c '
+          find . -name Makefile -execdir sh -c '
           sed -i "s/^CC\s*=.*/CC = clang/" Makefile;
           sed -i "s/^CXX\s*=.*/CXX = clang++/" Makefile;
           sed -i "s/^CFLAGS\s*=.*/& -fsanitize=thread -fPIE -O2 -g -gcolumn-info/" Makefile;
