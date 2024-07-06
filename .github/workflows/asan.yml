@@ -29,9 +29,12 @@ jobs:
           export CFLAGS="-fsanitize=address -O1 -fno-omit-frame-pointer -fno-common -fsanitize-recover=address -g"
           export LDFLAGS="-fsanitize=address"
           find . -name Makefile -execdir sh -c '
-          sed -i 's/^CC\s*=.*/CC = clang/' Makefile && sed -i 's/^CXX\s*=.*/CXX = clang++/' Makefile && sed -i 's/^CFLAGS\s*=.*/& -fsanitize=address -O1 -fno-omit-frame-pointer -fno-common -fsanitize-recover=address -g/' Makefile
-          sed -i 's/^LDFLAGS\s*=.*/& -fsanitize=address/' Makefile && sed -i 's/^CPP\s*=.*/CPP = clang -E/' Makefile
-          make
+            sed -i "s/^CC\s*=.*/CC = clang/" Makefile &&
+            sed -i "s/^CXX\s*=.*/CXX = clang++/" Makefile &&
+            sed -i "s/^CFLAGS\s*=.*/& -fsanitize=address -O1 -fno-omit-frame-pointer -fno-common -fsanitize-recover=address -g/" Makefile &&
+            sed -i "s/^LDFLAGS\s*=.*/& -fsanitize=address/" Makefile &&
+            sed -i "s/^CPP\s*=.*/CPP = clang -E/" Makefile &&
+            make
           ' \;
 
       - name: Install Address Sanitizer dependencies (Linux)
