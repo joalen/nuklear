@@ -1,0 +1,89 @@
+name: Run GCOV
+
+on:
+  push:
+
+jobs:
+  run-gcov:
+    name: '${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4 
+        with:
+          ref: 6b9f937475db9280d966f44f469bc80191b5092a
+
+      - name: Install dependencies for project (Linux)
+        if: runner.os == 'Linux'
+        run: | 
+          sudo apt-get update
+          sudo apt-get install -y libglew-dev libxrandr-dev libudev-dev-* mesa-common-dev libsfml-*
+          
+      - name: Build repository 
+        run: | 
+          export CC=gcc
+          export CXX=g++
+          export CFLAGS="-fprofile-arcs -ftest-coverage -fPIC"
+          export LDFLAGS="-fprofile-arcs -ftest-coverage -fPIC"
+          find . -name Makefile -execdir sh -c '
+            sed -i 's/^CC\\s*=.*/CC = gcc/' Makefile
+            sed -i 's/^CXX\\s*=.*/CXX = g++/' Makefile
+            sed -i 's/^CFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/' Makefile
+            sed -i 's/^LDFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/' Makefile
+            make
+          ' \;
+        continue-on-error: true 
+           
+      - name: Run GCOV
+        run: |
+          #!/bin/bash
+          set +e 
+
+          mkdir gcovlogs
+          echo "=========[GCOV Service Started!]========="
+
+          DIRECTORY=.
+
+          is_executable() {
+            local file="$1"
+            if file "$file" | grep -q 'ELF 64-bit'; then
+              return 0
+            else
+              return 1
+            fi
+          }
+
+          run_with_gcov() {
+            local executable="$1"
+            output="$("$executable" 2>/dev/null)"  # Suppress stderr
+            local exit_status=$?
+            
+            if [ $exit_status -eq 124 ]; then
+              echo "Command timed out after 10 seconds: $executable"
+              return  # Skip gcov analysis on timeout
+            fi
+            
+            gcov --all-blocks --branch-probabilities --branch-counts --display-progress --function-summaries --json-format -H --use-colors --demangled-names --unconditional-branches --verbose "$executable"
+          }
+
+          find "$DIRECTORY" -type f -executable | while read -r file; do
+            if is_executable "$file"; then
+              run_with_gcov "$file"
+              echo ""
+              echo "" 
+              echo "" 
+            fi
+          done
+
+          find . -name "*.gcov.json.gz" -exec sh -c 'gzip -dc "{}" > "gcovlogs/$(basename "{}" .gz)"' \;
+          echo "=========[GCOV service finished]========="
+  
+      - name: Upload GCOV reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: gcov-report-${{ github.event.repository.name }}-on-${{ matrix.os }}
+          path: './gcovlogs/*'
