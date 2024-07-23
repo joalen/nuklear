@@ -30,10 +30,10 @@ jobs:
           export CFLAGS="-fprofile-arcs -ftest-coverage -fPIC"
           export LDFLAGS="-fprofile-arcs -ftest-coverage -fPIC"
           find . -name Makefile -execdir sh -c '
-            sed -i 's/^CC\\s*=.*/CC = gcc/' Makefile
-            sed -i 's/^CXX\\s*=.*/CXX = g++/' Makefile
-            sed -i 's/^CFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/' Makefile
-            sed -i 's/^LDFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/' Makefile
+            sed -i "s/^CC\\s*=.*/CC = gcc/" Makefile
+            sed -i "s/^CXX\\s*=.*/CXX = g++/" Makefile
+            sed -i "s/^CFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/" Makefile
+            sed -i "s/^LDFLAGS\\s*=.*/& -fprofile-arcs -ftest-coverage -fPIC/" Makefile
             make
           ' \;
         continue-on-error: true 
