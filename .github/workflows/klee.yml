@@ -73,7 +73,7 @@ jobs:
       - name: Run Klee Analyzer
         run: |
           #!/bin/bash
-
+          mkdir -p klee_reports
           set +e 
           
           include_dirs=$(find . -name '*.h' -exec dirname {} + | sort -u | sed 's/^/-I /')
@@ -84,7 +84,7 @@ jobs:
                   if ! /usr/lib/llvm-13/bin/llvm-nm "$PWD/$bc_file" | grep -q " T main"; then
                       rm "$bc_file"
                   else
-                      klee_output=$(/tmp/klee/build/bin/klee "$bc_file" 2>&1)
+                      klee_output=$(/tmp/klee/build/bin/klee "$bc_file" 2>&1 | tee -a "./klee_reports/${file}_klee_report")
                       klee_exit_code=$?
           
                       if [[ $klee_exit_code -eq 0 ]]; then
@@ -102,3 +102,9 @@ jobs:
                   continue
               fi
           done < <(find . -name "*.c" -exec grep -q "int main" {} \; -print0)
+
+      - name: Upload Klee reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: klee-report-${{ github.event.repository.name}}-on-${{ matrix.os }}-from_branch_${{ github.ref_name }}
+          path: './klee_reports/*'
