@@ -84,7 +84,8 @@ jobs:
                   if ! /usr/lib/llvm-13/bin/llvm-nm "$PWD/$bc_file" | grep -q " T main"; then
                       rm "$bc_file"
                   else
-                      klee_output=$(/tmp/klee/build/bin/klee "$bc_file" 2>&1 | tee -a "./klee_reports/${file}_klee_report.txt")
+                      output_file="klee_reports/$(basename "$file" .c)_klee_report.txt"
+                      klee_output=$(/tmp/klee/build/bin/klee "$bc_file" 2>&1 | tee -a "$output_file")
                       klee_exit_code=$?
           
                       if [[ $klee_exit_code -eq 0 ]]; then
@@ -102,7 +103,6 @@ jobs:
                   continue
               fi
           done < <(find . -name "*.c" -exec grep -q "int main" {} \; -print0)
-
       - name: Upload Klee reports
         uses: actions/upload-artifact@v4
         with:
