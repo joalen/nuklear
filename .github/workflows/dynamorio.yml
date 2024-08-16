@@ -161,5 +161,5 @@ jobs:
       - name: Upload DynamoRIO aggregated reports
         uses: actions/upload-artifact@v4
         with:
-          name: dynamoRIO-aggregated-reports-${{ github.event.repository.name }}-on-${{ matrix.os }}-under-${{ matrix.arch }}
+          name: dynamoRIO-aggregated-reports-${{ github.event.repository.name }}-on-${{ matrix.os }}-under-${{ matrix.arch }}-from_branch_${{ github.ref_name }}
           path: './dynamoriologs/*'
